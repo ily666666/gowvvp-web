@@ -29,6 +29,7 @@ import {
   GetMediaInfo,
   getMediaInfoKey,
   type RecordMode,
+  type SettableRecordMode,
   SetRecordMode,
 } from "~/service/api/channel/channel";
 import type { Ext } from "~/service/api/channel/state";
@@ -144,10 +145,10 @@ export default function DeviceDetailView({
     },
   });
 
-  // 设置录像模式
+  // 设置录像模式（不含 plan，避免覆盖业务系统写入的计划）
   const { mutate: setRecordModeMutate, isPending: recordModePending } =
     useMutation({
-      mutationFn: (mode: RecordMode) => SetRecordMode(channelId!, mode),
+      mutationFn: (mode: SettableRecordMode) => SetRecordMode(channelId!, mode),
       onSuccess: (data) => {
         setRecordMode(data.data?.record_mode || "always");
         toast.success(t("common:record_mode_set_success"));
@@ -196,20 +197,29 @@ export default function DeviceDetailView({
                 {isAIPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ScanSearch className="w-3.5 h-3.5" />}
                 {t("common:ai_analysis")}
               </button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button type="button" disabled={recordModePending} className={footerAction}>
-                    {recordModePending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Video className="w-3.5 h-3.5" />}
-                    {t(`common:record_mode_${recordMode}`)}
-                    <ChevronDown className="w-3 h-3 opacity-60 -ml-0.5" />
+              {recordMode === "plan" ? (
+                <ToolTips tips={t("common:record_mode_plan_hint")}>
+                  <button type="button" className={footerAction}>
+                    <Video className="w-3.5 h-3.5" />
+                    {t("common:record_mode_plan")}
                   </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  <DropdownMenuItem onClick={() => setRecordModeMutate("always")} className={recordMode === "always" ? "bg-accent" : ""}>{t("common:record_mode_always")}</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setRecordModeMutate("ai")} className={recordMode === "ai" ? "bg-accent" : ""}>{t("common:record_mode_ai")}</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setRecordModeMutate("none")} className={recordMode === "none" ? "bg-accent" : ""}>{t("common:record_mode_none")}</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                </ToolTips>
+              ) : (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button type="button" disabled={recordModePending} className={footerAction}>
+                      {recordModePending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Video className="w-3.5 h-3.5" />}
+                      {t(`common:record_mode_${recordMode}`)}
+                      <ChevronDown className="w-3 h-3 opacity-60 -ml-0.5" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    <DropdownMenuItem onClick={() => setRecordModeMutate("always")} className={recordMode === "always" ? "bg-accent" : ""}>{t("common:record_mode_always")}</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setRecordModeMutate("ai")} className={recordMode === "ai" ? "bg-accent" : ""}>{t("common:record_mode_ai")}</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setRecordModeMutate("none")} className={recordMode === "none" ? "bg-accent" : ""}>{t("common:record_mode_none")}</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
               <button type="button" onClick={onZoneSettings} className={footerAction}>
                 <Settings2 className="w-3.5 h-3.5" />
                 {t("common:zone_settings")}
@@ -225,20 +235,29 @@ export default function DeviceDetailView({
                   {t("common:ai_analysis")}
                 </Button>
               </ToolTips>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="sm" variant="outline" disabled={recordModePending} className="rounded-full text-[12px]">
-                    {recordModePending ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Video className="w-3.5 h-3.5 mr-1.5" />}
-                    {t(`common:record_mode_${recordMode}`)}
-                    <ChevronDown className="w-3.5 h-3.5 ml-1" />
+              {recordMode === "plan" ? (
+                <ToolTips tips={t("common:record_mode_plan_hint")}>
+                  <Button size="sm" variant="outline" className="rounded-full text-[12px] cursor-default">
+                    <Video className="w-3.5 h-3.5 mr-1.5" />
+                    {t("common:record_mode_plan")}
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  <DropdownMenuItem onClick={() => setRecordModeMutate("always")} className={recordMode === "always" ? "bg-accent" : ""}>{t("common:record_mode_always")}</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setRecordModeMutate("ai")} className={recordMode === "ai" ? "bg-accent" : ""}>{t("common:record_mode_ai")}</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setRecordModeMutate("none")} className={recordMode === "none" ? "bg-accent" : ""}>{t("common:record_mode_none")}</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                </ToolTips>
+              ) : (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" variant="outline" disabled={recordModePending} className="rounded-full text-[12px]">
+                      {recordModePending ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Video className="w-3.5 h-3.5 mr-1.5" />}
+                      {t(`common:record_mode_${recordMode}`)}
+                      <ChevronDown className="w-3.5 h-3.5 ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    <DropdownMenuItem onClick={() => setRecordModeMutate("always")} className={recordMode === "always" ? "bg-accent" : ""}>{t("common:record_mode_always")}</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setRecordModeMutate("ai")} className={recordMode === "ai" ? "bg-accent" : ""}>{t("common:record_mode_ai")}</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setRecordModeMutate("none")} className={recordMode === "none" ? "bg-accent" : ""}>{t("common:record_mode_none")}</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
               <ToolTips tips={t("common:zone_settings")}>
                 <Button size="sm" variant="outline" onClick={onZoneSettings} className="rounded-full text-[12px]">
                   <Settings2 className="w-3.5 h-3.5 mr-1.5" />

@@ -13,12 +13,14 @@ import { formatDate } from "~/components/util/date";
 import useDebounce from "~/components/util/debounce";
 import { TableQuery, type TableQueryRef } from "~/components/xui/table-query";
 import { toastSuccess } from "~/components/xui/toast";
+import ToolTips from "~/components/xui/tips";
 import { cn } from "~/lib/utils";
 import ChannelDetailView from "~/pages/channels/detail";
 import {
   FindChannels,
   findChannelsKey,
   type RecordMode,
+  type SettableRecordMode,
   SetRecordMode,
 } from "~/service/api/channel/channel";
 import type { ChannelItem } from "~/service/api/channel/state";
@@ -26,7 +28,8 @@ import { GetDevice, getDeviceKey, RefreshCatalog } from "~/service/api/device/de
 import { ErrorHandle } from "~/service/config/error";
 
 /**
- * 录像模式 RadioButton - 独立组件避免整表重渲染
+ * 录像模式 RadioButton - 独立组件避免整表重渲染。
+ * plan 由业务系统配置，这里只读展示，避免误点 always/none 覆盖计划。
  */
 function RecordModeRadio({ record }: { record: ChannelItem }) {
   const { t } = useTranslation("common");
@@ -34,13 +37,23 @@ function RecordModeRadio({ record }: { record: ChannelItem }) {
   const [mode, setMode] = useState<RecordMode>(currentMode);
 
   const { mutate, isPending } = useMutation({
-    mutationFn: (newMode: RecordMode) => SetRecordMode(record.id, newMode),
+    mutationFn: (newMode: SettableRecordMode) => SetRecordMode(record.id, newMode),
     onSuccess: (data) => {
       setMode(data.data?.record_mode || "always");
       toast.success(t("record_mode_set_success"));
     },
     onError: ErrorHandle,
   });
+
+  if (mode === "plan") {
+    return (
+      <ToolTips tips={t("record_mode_plan_hint")}>
+        <span className="inline-flex">
+          <Badge variant="secondary">{t("record_short_plan")}</Badge>
+        </span>
+      </ToolTips>
+    );
+  }
 
   return (
     <Radio.Group

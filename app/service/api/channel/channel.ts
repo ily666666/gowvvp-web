@@ -79,8 +79,9 @@ export async function DisableAI(channelId: string) {
   return await POST<DisableAIResponse>(`/channels/${channelId}/ai/disable`);
 }
 
-// 录像模式管理 API
-export type RecordMode = "always" | "ai" | "none";
+// 录像模式：plan 由业务系统写计划接口产生，本页只展示、不通过 record_mode 改写
+export type RecordMode = "always" | "ai" | "none" | "plan";
+export type SettableRecordMode = Exclude<RecordMode, "plan">;
 
 export type SetRecordModeResponse = {
   id: string;
@@ -88,7 +89,7 @@ export type SetRecordModeResponse = {
   message: string;
 };
 
-export async function SetRecordMode(channelId: string, mode: RecordMode) {
+export async function SetRecordMode(channelId: string, mode: SettableRecordMode) {
   return await POST<SetRecordModeResponse>(`/channels/${channelId}/record_mode`, { mode });
 }
 
